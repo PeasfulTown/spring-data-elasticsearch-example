@@ -3,16 +3,21 @@ package xyz.peasfultown.test.elasticsearch_database_simple_test;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ArticleSearchService {
@@ -98,6 +103,49 @@ public class ArticleSearchService {
                                 .date(d -> d
                                         .field("createdAt")
                                         .gte(cutoff.toString()))));
+            }
+        }
+
+        if (request.getAdditionalProperties() != null && !request.getAdditionalProperties().isEmpty()) {
+            for (Map.Entry<String, Object> prop : request.getAdditionalProperties().entrySet()) {
+                if (prop.getKey() != null && !prop.getKey().isBlank()) {
+                    Object value = prop.getValue();
+                    if (Objects.nonNull(value)) {
+                        String fieldPath = "additionalProperties." + prop.getKey();
+                        if (value instanceof String) {
+                            boolBuilder.filter(f -> f
+                                    .term(t -> t
+                                            .field(fieldPath)
+                                            .value((String) value)));
+                        } else if (value instanceof Map<?, ?>) {
+                            Map<String, Object> innerMap = (Map<String, Object>) value;
+                            log.info("dynamic query map detected: {}", innerMap);
+                            switch (QueryType.valueOf(innerMap.get("queryType").toString())) {
+                                case RANGE -> {
+                                    if (!(innerMap.get("value") instanceof List<?>) || ((List<?>) innerMap.get("value")).isEmpty()) {
+                                        log.error("unable to cast value object to list when dynamic query type is RANGE");
+                                        log.error("value: {}", innerMap.get("value"));
+                                        throw new IllegalArgumentException("unable to cast value object when query type is RANGE, value should be a list of 2 values");
+                                    }
+
+                                    List<?> innerValues = (List<?>) innerMap.get("value");
+                                    if (innerValues.get(0) instanceof Integer) {
+                                        boolBuilder.filter(f -> f
+                                                .range(r -> r
+                                                        .number(n -> n
+                                                                .field(fieldPath)
+                                                                .gte(((Number) innerValues.get(0)).doubleValue())
+                                                                .lte(((Number) innerValues.get(1)).doubleValue()))));
+                                    }
+                                }
+                                default -> throw new IllegalArgumentException("well");
+                            }
+                        } else {
+                            log.warn("unable to determine value type for key {}", prop.getKey());
+                        }
+
+                    }
+                }
             }
         }
 

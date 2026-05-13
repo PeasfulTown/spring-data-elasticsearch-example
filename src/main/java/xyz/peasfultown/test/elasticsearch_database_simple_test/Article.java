@@ -1,13 +1,18 @@
 package xyz.peasfultown.test.elasticsearch_database_simple_test;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Document(indexName = "blog", createIndex = true)
@@ -35,4 +40,8 @@ public class Article {
     @Field(type = FieldType.Date)
     @Builder.Default
     private Instant createdAt = Instant.now();
+
+    @Field(type = FieldType.Flattened)
+    @Builder.Default
+    private Map<String, Object> additionalProperties = new HashMap<>();
 }

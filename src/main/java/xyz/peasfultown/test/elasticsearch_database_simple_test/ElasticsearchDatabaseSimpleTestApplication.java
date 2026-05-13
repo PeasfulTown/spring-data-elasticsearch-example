@@ -9,7 +9,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -49,6 +51,12 @@ public class ElasticsearchDatabaseSimpleTestApplication {
                                     new Tag("Programming")
                             ))
                             .createdAt(Instant.parse("2026-01-15T09:30:00Z"))
+                            .additionalProperties(Map.of(
+                                    "viewers", 1200,
+                                    "wordCount", 3000,
+                                    "publisher", "Google"
+
+                            ))
                             .build(),
                     Article.builder()
                             .title("A Beginner's Guide to Containerization")
