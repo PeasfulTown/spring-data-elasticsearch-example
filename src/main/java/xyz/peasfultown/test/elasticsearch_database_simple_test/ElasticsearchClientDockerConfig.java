@@ -1,16 +1,17 @@
 package xyz.peasfultown.test.elasticsearch_database_simple_test;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
-import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
+@Profile("docker")
 @Configuration
-public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
+public class ElasticsearchClientDockerConfig extends ElasticsearchConfiguration {
     @Override
     public ClientConfiguration clientConfiguration() {
         return ClientConfiguration.builder()
-                .connectedTo("localhost:9200")
+                .connectedTo("elasticsearch:9200")
                 .build();
     }
 }

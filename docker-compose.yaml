@@ -1,4 +1,19 @@
 services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: article_app
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    networks:
+      - elasticsearch_test
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.19.15
@@ -11,6 +26,12 @@ services:
       memlock:
         soft: -1
         hard: -1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"] 
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     ports:
       - "9200:9200"
     volumes:
@@ -18,18 +39,18 @@ services:
     networks:
       - elasticsearch_test
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.19.15
-    container_name: article_kibana
-    restart: unless-stopped
-    environment:
-      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-    ports:
-      - "5601:5601"
-    networks:
-      - elasticsearch_test
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.19.15
+  #   container_name: article_kibana
+  #   restart: unless-stopped
+  #   environment:
+  #     ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+  #   depends_on:
+  #     - elasticsearch
+  #   ports:
+  #     - "5601:5601"
+  #   networks:
+  #     - elasticsearch_test
 
 networks:
   elasticsearch_test:
