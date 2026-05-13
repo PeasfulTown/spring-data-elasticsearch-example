@@ -1,0 +1,11 @@
+spring:
+
+  application:
+    name: elasticsearch-database-simple-test
+
+logging:
+  level:
+    # Captures Spring Data Elasticsearch query DSL construction
+    org.springframework.data.elasticsearch.core: DEBUG
+    # Captures underlying raw HTTP requests and responses
+    org.apache.http: DEBUG
