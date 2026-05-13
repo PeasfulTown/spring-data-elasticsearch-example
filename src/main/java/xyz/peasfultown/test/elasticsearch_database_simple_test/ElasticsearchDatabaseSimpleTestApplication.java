@@ -52,7 +52,7 @@ public class ElasticsearchDatabaseSimpleTestApplication {
                             ))
                             .createdAt(Instant.parse("2026-01-15T09:30:00Z"))
                             .additionalProperties(Map.of(
-                                    "viewers", 1200,
+                                    "followers", 1200,
                                     "wordCount", 3000,
                                     "publisher", "Google"
 
@@ -82,6 +82,12 @@ public class ElasticsearchDatabaseSimpleTestApplication {
                                     new Tag("UI/UX"),
                                     new Tag("Accessibility"),
                                     new Tag("Design")
+                            ))
+                            .additionalProperties(Map.of(
+                                    "subscribers", 1000,
+                                    "publisher", "Baeldung",
+                                    "wordCount", 9000
+
                             ))
                             .createdAt(Instant.parse("2026-02-18T11:05:00Z"))
                             .build(),
@@ -123,6 +129,10 @@ public class ElasticsearchDatabaseSimpleTestApplication {
                                     new Tag("Remote Work"),
                                     new Tag("Lifestyle")
                             ))
+                            .additionalProperties(Map.of(
+                                    "publisher", "AWS",
+                                    "followers", 1300
+                            ))
                             .createdAt(Instant.parse("2026-03-29T08:00:00Z"))
                             .build(),
                     Article.builder()
@@ -146,6 +156,10 @@ public class ElasticsearchDatabaseSimpleTestApplication {
                             .tags(asList(
                                     new Tag("Cloud"),
                                     new Tag("Serverless")
+                            ))
+                            .additionalProperties(Map.of(
+                                    "publisher", "AWS",
+                                    "followers", 4000
                             ))
                             .createdAt(Instant.parse("2026-03-01T08:00:00Z"))
                             .build()

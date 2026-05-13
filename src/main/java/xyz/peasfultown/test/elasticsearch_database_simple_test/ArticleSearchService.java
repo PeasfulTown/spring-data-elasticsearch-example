@@ -117,12 +117,18 @@ public class ArticleSearchService {
                                     .term(t -> t
                                             .field(fieldPath)
                                             .value((String) value)));
+                        } else if (value instanceof Integer) {
+                            boolBuilder.filter(f -> f
+                                    .term(t -> t
+                                            .field(fieldPath)
+                                            .value(Integer.valueOf(value.toString()))));
                         } else if (value instanceof Map<?, ?>) {
                             Map<String, Object> innerMap = (Map<String, Object>) value;
-                            log.info("dynamic query map detected: {}", innerMap);
+                            log.info("dynamic query map object detected: {}", innerMap);
+                            Object innerValue = innerMap.get("value");
                             switch (QueryType.valueOf(innerMap.get("queryType").toString())) {
                                 case RANGE -> {
-                                    if (!(innerMap.get("value") instanceof List<?>) || ((List<?>) innerMap.get("value")).isEmpty()) {
+                                    if (!(innerValue instanceof List<?>) || ((List<?>) innerValue).isEmpty()) {
                                         log.error("unable to cast value object to list when dynamic query type is RANGE");
                                         log.error("value: {}", innerMap.get("value"));
                                         throw new IllegalArgumentException("unable to cast value object when query type is RANGE, value should be a list of 2 values");
@@ -136,6 +142,45 @@ public class ArticleSearchService {
                                                                 .field(fieldPath)
                                                                 .gte(((Number) innerValues.get(0)).doubleValue())
                                                                 .lte(((Number) innerValues.get(1)).doubleValue()))));
+                                    }
+                                }
+                                case NOT_EQUALS -> {
+                                    if (innerValue instanceof String) {
+                                        boolBuilder
+                                                .must(m -> m
+                                                        .exists(e -> e
+                                                                .field(fieldPath)))
+                                                .mustNot(m -> m
+                                                .term(t -> t
+                                                        .field(fieldPath)
+                                                        .value(innerValue.toString())));
+                                    } else if (innerValue instanceof Integer) {
+                                        boolBuilder
+                                                .must(m -> m
+                                                        .exists(e -> e
+                                                                .field(fieldPath)))
+                                                .mustNot(m -> m
+                                                .term(t -> t
+                                                        .field(fieldPath)
+                                                        .value((Integer) innerValue)));
+                                    }
+                                }
+                                case GREATER_THAN_OR_EQUALS -> {
+                                    if (innerValue instanceof Number) {
+                                        boolBuilder.filter(f -> f
+                                                .range(r -> r
+                                                        .number(n -> n
+                                                                .field(fieldPath)
+                                                                .gte(((Number) innerValue).doubleValue()))));
+                                    }
+                                }
+                                case LESSER_THAN_OR_EQUALS -> {
+                                    if (innerValue instanceof Number) {
+                                        boolBuilder.filter(f -> f
+                                                .range(r -> r
+                                                        .number(n -> n
+                                                                .field(fieldPath)
+                                                                .lte(((Number) innerValue).doubleValue()))));
                                     }
                                 }
                                 default -> throw new IllegalArgumentException("well");

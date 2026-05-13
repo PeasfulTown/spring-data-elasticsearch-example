@@ -41,7 +41,6 @@ public class Article {
     @Builder.Default
     private Instant createdAt = Instant.now();
 
-    @Field(type = FieldType.Flattened)
     @Builder.Default
     private Map<String, Object> additionalProperties = new HashMap<>();
 }
