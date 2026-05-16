@@ -8,6 +8,9 @@ import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.query.HighlightQuery;
+import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -36,6 +39,13 @@ public class ArticleSearchService {
                                     .field("description")
                                     .query(request.getTextQuery())
                                     .fuzziness("AUTO")))
+                            .should(s -> s
+                                    .nested(n -> n
+                                            .path("comments")
+                                            .query(nq -> nq
+                                                    .match(ma -> ma
+                                                            .field("comments.body")
+                                                            .query(request.getTextQuery())))))
                     )
             );
         }
@@ -192,6 +202,7 @@ public class ArticleSearchService {
                 }
             }
         }
+
 
         NativeQuery nativeQuery = NativeQuery.builder()
                 .withQuery(Query.of(q -> q.bool(boolBuilder.build())))

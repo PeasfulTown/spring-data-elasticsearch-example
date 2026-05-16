@@ -7,9 +7,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.ScriptType;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -167,6 +169,46 @@ public class ElasticsearchDatabaseSimpleTestApplication {
 
             repo.saveAll(articles);
             log.info("Saved articles");
+
+            // add comments
+
+            String commenter1 = UUID.randomUUID().toString();
+            String commenter2 = UUID.randomUUID().toString();
+            String commenter3 = UUID.randomUUID().toString();
+
+            addComment(articles.get(0).getId().toString(),
+                    Comment.builder()
+                            .body("Test comment!")
+                            .authorId(commenter1)
+                    .build());
+            addComment(articles.get(0).getId().toString(),
+                    Comment.builder()
+                            .body("Another test comment!")
+                            .authorId(commenter2)
+                            .build());
+            addComment(articles.get(1).getId().toString(),
+                    Comment.builder()
+                            .body("The best test comment!")
+                            .authorId(commenter2)
+                            .build());
+            addComment(articles.get(1).getId().toString(),
+                    Comment.builder()
+                            .body("The worst comment!")
+                            .authorId(commenter3)
+                            .build());
         };
+    }
+
+    private void addComment(String articleId, Comment comment) {
+        String script = "if (ctx._source.comments == null) { ctx._source.comments = [] }" +
+                "ctx._source.comments.add(params.comment)";
+        Map<String, Object> params = Map.of("comment", comment);
+        UpdateQuery updateQuery = UpdateQuery.builder(articleId)
+                .withScriptType(ScriptType.INLINE)
+                .withScript(script)
+                .withParams(params)
+                .build();
+
+        ops.update(updateQuery, IndexCoordinates.of("blog"));
     }
 }

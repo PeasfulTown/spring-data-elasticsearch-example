@@ -10,10 +10,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Document(indexName = "blog", createIndex = true)
 @Data
@@ -36,6 +33,9 @@ public class Article {
 
     @Field(type = FieldType.Nested)
     private List<Tag> tags;
+
+    @Field(type = FieldType.Nested)
+    private List<Comment> comments;
 
     @Field(type = FieldType.Date)
     @Builder.Default
